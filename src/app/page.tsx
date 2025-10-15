@@ -1,103 +1,147 @@
-import Image from "next/image";
+'use client'
+
+import { useState, useEffect } from 'react'
+import { fetchNFTsClient } from '@/lib/client-nft-api'
+import InfiniteGrid from '@/components/InfiniteGrid'
+import SlidePanel from '@/components/SlidePanel'
+import type { NFT } from '@/types/nft'
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [nfts, setNfts] = useState<NFT[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<string[]>([])
+  const [runtimeError, setRuntimeError] = useState<string | null>(null)
+  const [currentTime, setCurrentTime] = useState<string>('')
+  const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null)
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  
+  const addDebug = (message: string) => {
+    try {
+      console.log(message)
+      setDebugInfo(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${message}`])
+    } catch (err) {
+      setRuntimeError(`Debug error: ${err}`)
+    }
+  }
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const handleNFTClick = (nft: NFT) => {
+    setSelectedNFT(nft)
+    setIsPanelOpen(true)
+    addDebug(`Selected NFT #${nft.token_id}`)
+  }
+
+  const handlePanelClose = () => {
+    setIsPanelOpen(false)
+    setSelectedNFT(null)
+    addDebug('Closed slide panel')
+  }
+  
+  const loadNFTs = async () => {
+      try {
+        addDebug('Starting NFT fetch with client function...')
+        setLoading(true)
+        setError(null)
+        
+        const result = await fetchNFTsClient({
+          limit: 1000, // Fetch all NFTs (should be more than enough for current collection)
+          offset: 0
+        })
+        
+        addDebug(`Client fetch result: ${JSON.stringify(result)}`)
+        
+        if (result.success && result.data) {
+          setNfts(result.data)
+          addDebug(`Loaded ${result.data.length} NFTs out of ${result.count} total`)
+          addDebug(`Has more: ${result.pagination.hasMore}`)
+        } else {
+          setError(result.error || 'Unknown error')
+        }
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+        setError(errorMsg)
+        addDebug(`Error: ${errorMsg}`)
+      } finally {
+        setLoading(false)
+      }
+    }
+  
+  useEffect(() => {
+    try {
+      addDebug('🚀 useEffect triggered')
+      loadNFTs()
+    } catch (err) {
+      setRuntimeError(`useEffect error: ${err}`)
+    }
+  }, [])
+
+  // Timer to verify React is working
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date().toLocaleTimeString())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
+
+  // Show debug interface if there are errors or no NFTs loaded yet
+  if (error || (nfts.length === 0 && !loading)) {
+    return (
+      <div className="h-screen w-full bg-gray-50 p-8">
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-4xl mx-auto">
+          <h1 className="text-2xl font-bold mb-4">NFT Debug Page</h1>
+          
+          <div className="mb-4">
+            <p><strong>Current Time:</strong> {currentTime}</p>
+            <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
+            <p><strong>NFTs Loaded:</strong> {nfts.length}</p>
+            <p><strong>Error:</strong> {error || 'None'}</p>
+            <p><strong>Environment:</strong> {process.env.NODE_ENV}</p>
+            <p><strong>API URL:</strong> {process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not set'}</p>
+          </div>
+
+          {runtimeError && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+              <strong>Runtime Error:</strong> {runtimeError}
+            </div>
+          )}
+
+          <button 
+            onClick={loadNFTs}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+            disabled={loading}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            {loading ? 'Loading...' : 'Load NFTs'}
+          </button>
+
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold mb-2">Debug Log:</h3>
+            <div className="bg-gray-100 p-4 rounded max-h-64 overflow-auto">
+              {debugInfo.map((info, index) => (
+                <div key={index} className="text-sm font-mono">
+                  {info}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <InfiniteGrid
+        nfts={nfts}
+        onNFTClick={handleNFTClick}
+        loading={loading}
+        error={error}
+      />
+      
+      <SlidePanel
+        nft={selectedNFT}
+        isOpen={isPanelOpen}
+        onClose={handlePanelClose}
+      />
+    </>
+  )
 }
