@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import type { NFT } from '@/types/nft'
 import { processNFTForDisplay } from '@/types/nft'
 
@@ -37,11 +38,13 @@ export default function NFTCard({ nft, onClick, className = '' }: NFTCardProps) 
       {/* Image Section */}
       {processedNFT.hasImage && !imageError ? (
         <div className="relative h-48 bg-gray-100">
-          <img
+          <Image
             src={nft.image_url!}
             alt={processedNFT.displayName}
-            className="w-full h-full object-cover"
+            fill
+            className="object-cover"
             onError={handleImageError}
+            unoptimized
           />
         </div>
       ) : (

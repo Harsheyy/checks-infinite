@@ -1,5 +1,5 @@
 import React from 'react'
-import NFTCard, { NFTCardSkeleton, NFTCardError } from './NFTCard'
+import NFTCard, { NFTCardSkeleton } from './NFTCard'
 import type { NFT } from '@/types/nft'
 
 interface NFTGridProps {

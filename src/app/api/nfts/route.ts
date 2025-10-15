@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
       limit: parseInt(searchParams.get('limit') || '20'),
       offset: parseInt(searchParams.get('offset') || '0'),
       search: searchParams.get('search') || undefined,
-      sortBy: (searchParams.get('sortBy') as any) || 'token_id',
+      sortBy: (searchParams.get('sortBy') as 'token_id' | 'last_seen_at') || 'token_id',
       sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'asc',
     }
     
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (Object.keys(filters).length > 0) {
-      params.filters = filters as any
+      params.filters = filters as Record<string, string>
     }
     
     console.log('📋 API params:', JSON.stringify(params))

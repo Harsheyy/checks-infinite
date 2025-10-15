@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import type { NFT } from '@/types/nft'
 import { processNFTForDisplay } from '@/types/nft'
 
@@ -49,11 +50,12 @@ export default function SlidePanel({ nft, isOpen, onClose }: SlidePanelProps) {
           {/* Image Section */}
           {processedNFT.hasImage ? (
             <div className="mb-6">
-              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                <img
+              <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
+                <Image
                   src={nft.image_url!}
                   alt={processedNFT.displayName}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
                 />
               </div>
             </div>
@@ -121,7 +123,7 @@ export default function SlidePanel({ nft, isOpen, onClose }: SlidePanelProps) {
             
             {processedNFT.traits.length > 0 ? (
               <div className="space-y-3">
-                {processedNFT.traits.map((trait, index) => (
+                {processedNFT.traits.map((trait) => (
                   <div key={trait.name} className="flex justify-between items-center py-3 px-4 bg-gray-50 rounded-lg">
                     <span className="text-gray-700 font-medium">{trait.displayName}</span>
                     <span className="bg-white px-3 py-1 rounded-full text-sm font-medium text-gray-900 border">

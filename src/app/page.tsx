@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { fetchNFTsClient } from '@/lib/client-nft-api'
 import InfiniteGrid from '@/components/InfiniteGrid'
 import SlidePanel from '@/components/SlidePanel'
@@ -16,14 +16,14 @@ export default function Home() {
   const [selectedNFT, setSelectedNFT] = useState<NFT | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
   
-  const addDebug = (message: string) => {
+  const addDebug = useCallback((message: string) => {
     try {
       console.log(message)
       setDebugInfo(prev => [...prev.slice(-4), `${new Date().toLocaleTimeString()}: ${message}`])
     } catch (err) {
       setRuntimeError(`Debug error: ${err}`)
     }
-  }
+  }, [setDebugInfo, setRuntimeError])
 
   const handleNFTClick = (nft: NFT) => {
     setSelectedNFT(nft)
@@ -37,7 +37,7 @@ export default function Home() {
     addDebug('Closed slide panel')
   }
   
-  const loadNFTs = async () => {
+  const loadNFTs = useCallback(async () => {
       try {
         addDebug('Starting NFT fetch with client function...')
         setLoading(true)
@@ -64,7 +64,7 @@ export default function Home() {
       } finally {
         setLoading(false)
       }
-    }
+    }, [addDebug, setLoading, setError, setNfts])
   
   useEffect(() => {
     try {
@@ -73,7 +73,7 @@ export default function Home() {
     } catch (err) {
       setRuntimeError(`useEffect error: ${err}`)
     }
-  }, [])
+  }, [loadNFTs, addDebug])
 
   // Timer to verify React is working
   useEffect(() => {

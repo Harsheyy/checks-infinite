@@ -14,7 +14,6 @@ interface InfiniteGridProps {
 const CARD_WIDTH = 280
 const CARD_HEIGHT = 350
 const GAP = 20
-const BUFFER_MULTIPLIER = 2 // How many screens worth of content to render
 
 export default function InfiniteGrid({ nfts, onNFTClick, loading, error }: InfiniteGridProps) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -27,26 +26,7 @@ export default function InfiniteGrid({ nfts, onNFTClick, loading, error }: Infin
   const cols = Math.floor((effectiveWidth + GAP) / (CARD_WIDTH + GAP)) || 1
   const rows = Math.floor((effectiveHeight + GAP) / (CARD_HEIGHT + GAP)) || 1
   
-  // Calculate how many NFTs we need to fill the screen plus buffer
-  const visibleCards = cols * rows
-  const bufferCards = visibleCards * BUFFER_MULTIPLIER
-  const totalCardsNeeded = visibleCards + bufferCards
 
-  // Create repeated NFT data for infinite effect
-  const repeatedNFTs = useCallback(() => {
-    if (nfts.length === 0) return []
-    
-    const result: NFT[] = []
-    const repetitions = Math.ceil(totalCardsNeeded / nfts.length)
-    
-    for (let i = 0; i < repetitions; i++) {
-      result.push(...nfts)
-    }
-    
-    return result.slice(0, totalCardsNeeded)
-  }, [nfts, totalCardsNeeded])
-
-  const infiniteNFTs = repeatedNFTs()
 
   // Handle container resize
   useEffect(() => {
@@ -65,7 +45,7 @@ export default function InfiniteGrid({ nfts, onNFTClick, loading, error }: Infin
   // Handle scroll with infinite looping
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const target = e.target as HTMLDivElement
-    const { scrollLeft, scrollTop, scrollWidth, scrollHeight, clientWidth, clientHeight } = target
+    const { scrollLeft, scrollTop } = target
 
     // Calculate the repeating pattern dimensions
     const patternWidth = cols * (CARD_WIDTH + GAP)

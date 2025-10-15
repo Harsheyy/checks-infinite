@@ -1,8 +1,8 @@
-import type { NFTSearchParams, NFTListResponse } from '@/types/nft'
+import type { NFTSearchParams, NFT } from '@/types/nft'
 
 export interface ClientNFTResponse {
   success: boolean
-  data: any[]
+  data: NFT[]
   count: number
   pagination: {
     limit: number

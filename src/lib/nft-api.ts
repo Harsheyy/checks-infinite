@@ -131,7 +131,7 @@ export async function fetchTraitValues(traitName: keyof NFTFilters): Promise<str
     // Extract unique values
     const uniqueValues = [...new Set(
       data
-        .map((item: Record<string, any>) => item[traitName])
+        .map((item: Record<string, unknown>) => item[traitName])
         .filter(Boolean)
     )] as string[]
 
@@ -183,8 +183,8 @@ export async function fetchNFTStats() {
 
         if (!error && data) {
           const distribution: Record<string, number> = {}
-          data.forEach((item: Record<string, any>) => {
-            const value = item[trait]
+          data.forEach((item: Record<string, unknown>) => {
+            const value = item[trait] as string
             if (value) {
               distribution[value] = (distribution[value] || 0) + 1
             }
@@ -212,7 +212,7 @@ export async function fetchNFTStats() {
 export async function testConnection(): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = getSupabaseClient()
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from(DATABASE_CONFIG.table)
       .select('token_id')
       .limit(1)
